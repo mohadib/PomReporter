@@ -21,7 +21,7 @@ public class SvnCredentialsRepo
   @JsonApiFindOne
   public SvnCredential findOne(Integer id, QuerySpec querySpec)
   {
-    return null;
+    return dao.findOne( id );
   }
 
   @JsonApiFindAll
@@ -33,7 +33,7 @@ public class SvnCredentialsRepo
   @JsonApiFindAllWithIds
   public ResourceList<SvnCredential> findAll(Iterable<Integer> ids, QuerySpec querySpec)
   {
-    return null;
+    return querySpec.apply( dao.findAll( ids ) );
   }
 
   @JsonApiSave
