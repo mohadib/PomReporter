@@ -16,7 +16,6 @@ import java.util.List;
 @Entity
 @Table( name = "SvnCredential")
 @JsonApiResource(type = "svncredentials")
-@NoArgsConstructor
 public class SvnCredential
 {
   @JsonApiId
@@ -35,15 +34,17 @@ public class SvnCredential
   @Column(nullable = false, length = 100)
   private String password;
 
-  @Column(nullable = false, length = 100)
-  private String name;
+  @Basic(optional = false)
+  private String host;
 
-  public SvnCredential(String username, String password, String name)
-  {
-    this.username = username;
-    this.password = password;
-    this.name = name;
-  }
+  @Basic(optional = false)
+  private String protocol;
+
+  @Basic(optional = false)
+  private int port;
+
+  @Column(nullable = false, length = 100, unique = true)
+  private String name;
 
   public Integer getId()
   {
@@ -93,6 +94,36 @@ public class SvnCredential
   public void setName( String name )
   {
     this.name = name;
+  }
+
+  public String getHost()
+  {
+    return host;
+  }
+
+  public void setHost( String host )
+  {
+    this.host = host;
+  }
+
+  public String getProtocol()
+  {
+    return protocol;
+  }
+
+  public void setProtocol( String protocol )
+  {
+    this.protocol = protocol;
+  }
+
+  public int getPort()
+  {
+    return port;
+  }
+
+  public void setPort( int port )
+  {
+    this.port = port;
   }
 
   @Override

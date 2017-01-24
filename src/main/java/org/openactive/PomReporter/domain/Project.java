@@ -3,7 +3,6 @@ package org.openactive.PomReporter.domain;
 import io.katharsis.resource.annotations.JsonApiId;
 import io.katharsis.resource.annotations.JsonApiResource;
 import io.katharsis.resource.annotations.JsonApiToOne;
-import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
@@ -31,13 +30,13 @@ public class Project
 	@ManyToOne( fetch = FetchType.LAZY )
 	private ProjectGroup projectGroup;
 
-	@Column(nullable = false)
-	private String url;
+	@Basic(optional = false)
+	private String path;
 
 	@Column(nullable = false)
 	private String xpathExpression;
 
-	@Column(nullable = false, length = 100)
+	@Column(nullable = false, length = 100, unique = true)
 	private String name;
 
 	public Integer getId()
@@ -70,14 +69,14 @@ public class Project
 		this.projectGroup = projectGroup;
 	}
 
-	public String getUrl()
+	public String getPath()
 	{
-		return url;
+		return path;
 	}
 
-	public void setUrl( String url )
+	public void setPath( String path )
 	{
-		this.url = url;
+		this.path = path;
 	}
 
 	public String getXpathExpression()

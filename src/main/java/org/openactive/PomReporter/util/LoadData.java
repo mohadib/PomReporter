@@ -29,20 +29,25 @@ public class LoadData
   @EventListener({ContextRefreshedEvent.class})
   public void appStarted()
   {
-    svnCredRepo.save( new SvnCredential( "jason", "letmein", "Default"));
-    svnCredRepo.save( new SvnCredential( "bob", "money", "bobrepo"));
+   SvnCredential cred = new SvnCredential();
+   cred.setName( "Foo Svn Cred" );
+   cred.setHost( "subversion.foo.com" );
+   cred.setProtocol( "http" );
+   cred.setPort( 80 );
+   cred.setUsername( "dib" );
+   cred.setPassword( "letmein" );
+   svnCredRepo.save( cred );
 
     ProjectGroup pg = new ProjectGroup();
     pg.setName( "Group 1" );
     projectGroupRepo.save( pg );
 
     Project p1 = new Project();
-    p1.setCredentials( svnCredRepo.findByName( "Default" ) );
+    p1.setCredentials( svnCredRepo.findByName( "Foo Svn Cred" ) );
     p1.setName( "FooBar" );
-    p1.setUrl( "http://google.com" );
+    p1.setPath( "/svn/foo" );
     p1.setXpathExpression( "/foo/bar" );
     p1.setProjectGroup( pg );
     projectRepo.save( p1 );
-
   }
 }
