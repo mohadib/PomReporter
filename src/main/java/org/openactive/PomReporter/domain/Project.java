@@ -3,7 +3,6 @@ package org.openactive.PomReporter.domain;
 import io.katharsis.resource.annotations.JsonApiId;
 import io.katharsis.resource.annotations.JsonApiResource;
 import io.katharsis.resource.annotations.JsonApiToOne;
-import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
@@ -13,7 +12,6 @@ import javax.persistence.*;
 @Entity
 @Table( name = "project")
 @JsonApiResource(type = "projects")
-@NoArgsConstructor
 public class Project
 {
 	@JsonApiId
@@ -23,12 +21,16 @@ public class Project
 	private Integer id;
 
 	@JsonApiToOne( opposite = "projects")
-	@ManyToOne( fetch = FetchType.EAGER )
+	@ManyToOne( fetch = FetchType.EAGER, optional = false)
 	private SvnCredential credentials;
 
 	@JsonApiToOne( opposite = "projects")
 	@ManyToOne( fetch = FetchType.LAZY )
 	private ProjectGroup projectGroup;
+
+	@JsonApiToOne
+	@OneToOne( mappedBy = "project")
+	private ProjectSvnInfo svnInfo;
 
 	@Basic(optional = false)
 	private String path;
@@ -97,6 +99,16 @@ public class Project
 	public void setName( String name )
 	{
 		this.name = name;
+	}
+
+	public ProjectSvnInfo getSvnInfo()
+	{
+		return svnInfo;
+	}
+
+	public void setSvnInfo(ProjectSvnInfo svnInfo)
+	{
+		this.svnInfo = svnInfo;
 	}
 
 	@Override

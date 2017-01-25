@@ -2,8 +2,11 @@ package org.openactive.PomReporter.util;
 
 import org.apache.commons.lang3.StringUtils;
 import org.openactive.PomReporter.domain.Project;
+import org.openactive.PomReporter.domain.ProjectSvnInfo;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * Created by jdavis on 1/24/17.
@@ -31,20 +34,34 @@ public class FileUtil
 
 	public File getOrCreateSvnProjectDir( Project project, String baseFilePath, String allowedChars )
 	{
-		String projectNameClean = project.getName().replaceAll( String.format("[^%s]", allowedChars), "" );
-		String projectPathClean = project.getPath().replaceAll( String.format("[^%s]", allowedChars), "" );
+		ProjectSvnInfo svnInfo = project.getSvnInfo();
+		File returnDir = null;
+		File baseDir = getOrCreateDir( baseFilePath );
 
-		if( StringUtils.isBlank( projectNameClean ) || StringUtils.isBlank( projectPathClean ))
+		if( svnInfo != null )
 		{
-			throw new IllegalArgumentException( "Name or path blank after cleaning" );
+			returnDir = new File( svnInfo.getFilePath() );
+		}
+		else
+		{
+			String projectNameClean = project.getName().replaceAll( String.format("[^%s]", allowedChars), "" );
+			String projectPathClean = project.getPath().replaceAll( String.format("[^%s]", allowedChars), "" );
+
+			if( StringUtils.isBlank( projectNameClean ) || StringUtils.isBlank( projectPathClean ))
+			{
+				throw new IllegalArgumentException( "Name or path blank after cleaning" );
+			}
+
+			returnDir = new File( new File( baseDir, projectNameClean), projectPathClean );
 		}
 
-		File basePath = getOrCreateDir( baseFilePath );
+		Path child = Paths.get( returnDir.getAbsolutePath() ).toAbsolutePath();
+		Path parent = Paths.get( baseDir.getAbsolutePath()).toAbsolutePath();
+		if( !child.startsWith(parent) )
+		{
+			throw new IllegalArgumentException( "Child is not in parent :" + returnDir.getAbsolutePath() );
+		}
 
-		File projectBasePath = new File( basePath, projectNameClean);
-		projectBasePath = getOrCreateDir( projectBasePath.getAbsolutePath() );
-
-		File svnProjectDir = new File( projectBasePath, projectPathClean );
-		return getOrCreateDir( svnProjectDir.getAbsolutePath() );
+		return getOrCreateDir( returnDir.getAbsolutePath() );
 	}
 }

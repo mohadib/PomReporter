@@ -6,6 +6,7 @@ import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Test;
 import org.openactive.PomReporter.domain.Project;
+import org.openactive.PomReporter.domain.ProjectSvnInfo;
 
 import java.io.File;
 import java.io.IOException;
@@ -89,5 +90,30 @@ public class FileUtilTest
 		assertTrue( created.exists() );
 		assertTrue( created.canWrite() );
 		assertEquals( "/tmp/projects/Foo/svnbazfoo", created.getAbsolutePath() );
+	}
+
+	@Test
+	public void testGetOrCreateSvnProjectDirWithPathOnProject()
+	{
+		String allowedChars = "a-zA-Z0-9_@";
+		Project project = new Project();
+		ProjectSvnInfo svnInfo = new ProjectSvnInfo();
+		svnInfo.setFilePath( "/tmp/projects/bar");
+		project.setSvnInfo( svnInfo );
+		File created = new FileUtil().getOrCreateSvnProjectDir( project, baseFilePath, allowedChars);
+		assertNotNull( created );
+		assertTrue( created.exists() );
+		assertTrue( created.canWrite() );
+	}
+
+	@Test( expected = IllegalArgumentException.class )
+	public void testGetOrCreateSvnProjectDirWithBadPathOnProject()
+	{
+		String allowedChars = "a-zA-Z0-9_@";
+		Project project = new Project();
+		ProjectSvnInfo svnInfo = new ProjectSvnInfo();
+		svnInfo.setFilePath( "/projects/bar");
+		project.setSvnInfo( svnInfo );
+		File created = new FileUtil().getOrCreateSvnProjectDir( project, baseFilePath, allowedChars);
 	}
 }

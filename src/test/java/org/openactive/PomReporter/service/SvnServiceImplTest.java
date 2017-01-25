@@ -4,6 +4,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.openactive.PomReporter.domain.Project;
 import org.openactive.PomReporter.domain.SvnCredential;
+import org.openactive.PomReporter.service.impl.SvnServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.annotation.Bean;
@@ -12,7 +13,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.util.Properties;
 
 /**
@@ -23,7 +23,7 @@ import java.util.Properties;
 public class SvnServiceImplTest
 {
 	@Autowired
-	private SvnServiceImpl service;
+	private SvnService service;
 
 	@Test
 	public void testCheckout() throws Exception
@@ -45,15 +45,15 @@ public class SvnServiceImplTest
 		project.setXpathExpression( "/project/version/text()" );
 		project.setCredentials( creds );
 
-		service.checkout( project );
+		service.checkoutProject( project );
 	}
 
 
 	@Configuration
-	public static class Config
+	static class Config
 	{
 		@Bean
-		public SvnServiceImpl SvnServiceImpl()
+		public SvnService SvnServiceImpl()
 		{
 			return new SvnServiceImpl();
 		}
@@ -63,8 +63,8 @@ public class SvnServiceImplTest
 		{
 			PropertyPlaceholderConfigurer config = new PropertyPlaceholderConfigurer();
 			Properties props = new Properties();
-			props.put( "svn.checkout.base.path.fileName.allowed.chars" , "a-zA-Z0-9_@");
-			props.put( "svn.checkout.base.path" , "/tmp/projects");
+			props.put( "svn.checkoutProject.base.path.fileName.allowed.chars" , "a-zA-Z0-9_@");
+			props.put( "svn.checkoutProject.base.path" , "/tmp/projects");
 			config.setProperties( props );
 			return config;
 		}
