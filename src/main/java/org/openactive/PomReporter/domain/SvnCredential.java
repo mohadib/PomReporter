@@ -3,9 +3,6 @@ package org.openactive.PomReporter.domain;
 import io.katharsis.resource.annotations.JsonApiId;
 import io.katharsis.resource.annotations.JsonApiResource;
 import io.katharsis.resource.annotations.JsonApiToMany;
-import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.util.List;
@@ -25,7 +22,7 @@ public class SvnCredential
   private Integer id;
 
   @JsonApiToMany( opposite = "credentials")
-  @OneToMany( fetch = FetchType.LAZY , mappedBy="credentials")
+  @OneToMany( fetch = FetchType.LAZY , mappedBy="credentials", cascade = CascadeType.REMOVE, orphanRemoval = true)
   private List<Project> projects;
 
   @Column(nullable = false, length = 100)

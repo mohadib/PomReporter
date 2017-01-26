@@ -29,7 +29,7 @@ public class Project
 	private ProjectGroup projectGroup;
 
 	@JsonApiToOne
-	@OneToOne( mappedBy = "project")
+	@OneToOne( mappedBy = "project", cascade = CascadeType.REMOVE, orphanRemoval = true)
 	private ProjectSvnInfo svnInfo;
 
 	@Basic(optional = false)

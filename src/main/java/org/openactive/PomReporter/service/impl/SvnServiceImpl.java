@@ -46,7 +46,7 @@ public class SvnServiceImpl implements SvnService
     info.setProject( project );
     info.setCreated( new Date() );
     info.setFilePath( handler.getSvnProjectDir().getAbsolutePath() );
-    projectSvnInfoDAO.save( info );
+    info = projectSvnInfoDAO.save( info );
   }
 
   @Override
@@ -70,6 +70,8 @@ public class SvnServiceImpl implements SvnService
       buff.append( logEntry );
     });
     doSvnAction(project, handler);
+    project.getSvnInfo().setLogEntries( buff.toString() );
+    projectSvnInfoDAO.save( project.getSvnInfo() );
   }
 
   @Override
@@ -78,8 +80,18 @@ public class SvnServiceImpl implements SvnService
     InfoActionHandler handler = new InfoActionHandler();
     doSvnAction( project, handler );
     SVNInfo info = handler.getInfo();
-    project.getSvnInfo().setProjectUrl( info.getURL().toString() );
+    project.getSvnInfo().setProjectUrl( removeUsernameFromUrl( info.getURL().toString(), project.getCredentials() ));
     projectSvnInfoDAO.save( project.getSvnInfo() );
+  }
+
+  private String removeUsernameFromUrl( String url, SvnCredential credential )
+  {
+    String userAndHost = String.format( "%s@%s", credential.getUsername(), credential.getHost() );
+    if( url.indexOf( userAndHost ) != -1 )
+    {
+      return url.replace( userAndHost, credential.getHost() );
+    }
+    return url;
   }
 
   private void doSvnAction(Project project, SvnActionHandler handler ) throws SVNException

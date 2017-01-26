@@ -10,6 +10,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
 
 /**
  * Created by mohadib on 1/24/17.
@@ -28,8 +30,27 @@ public class ProjectUpdateServiceImpl
   @Autowired
   private SvnService svnService;
 
+  @Autowired
+  private LockServiceImpl lockService;
+
   @Scheduled( fixedRate = 300000)
-  public void updateProjects()
+  public void run() throws InterruptedException
+  {
+    Lock pomRunLock = lockService.getPomServiceRunLock();
+    if( pomRunLock.tryLock( 60, TimeUnit.SECONDS ))
+    {
+      try
+      {
+        updateProjects();
+      }
+      finally
+      {
+        pomRunLock.unlock();
+      }
+    }
+  }
+
+  private void updateProjects()
   {
     List<Project> projects = projectDAO.findAll();
     for( Project project : projects )
@@ -39,6 +60,10 @@ public class ProjectUpdateServiceImpl
         try
         {
           svnService.checkoutProject( project );
+          // after checkout ProjectSvnInfo gets created
+          // before that its null, lets refresh the project and
+          // get the new ProjectSvnInfo
+          project = projectDAO.findOne( project.getId() );
         }
         catch (Exception e)
         {

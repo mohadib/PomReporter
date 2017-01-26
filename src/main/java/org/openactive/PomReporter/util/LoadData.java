@@ -6,16 +6,23 @@ import org.openactive.PomReporter.dao.SvnCredenitalDAO;
 import org.openactive.PomReporter.domain.Project;
 import org.openactive.PomReporter.domain.ProjectGroup;
 import org.openactive.PomReporter.domain.SvnCredential;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.util.Properties;
 
 /**
  * Created by mohadib on 1/23/17.
  */
 @Component
-public class LoadData
+public class LoadData implements ApplicationListener<ContextRefreshedEvent>
 {
   @Autowired
   private SvnCredenitalDAO svnCredRepo;
@@ -26,28 +33,47 @@ public class LoadData
   @Autowired
   private ProjectGroupDAO projectGroupRepo;
 
-  @EventListener({ContextRefreshedEvent.class})
-  public void appStarted()
+
+  @Override
+  public void onApplicationEvent( ContextRefreshedEvent contextRefreshedEvent )
   {
-    SvnCredential cred = new SvnCredential();
-    cred.setName("Foo Svn Cred");
-    cred.setHost("subversion.foo.com");
-    cred.setProtocol("http");
-    cred.setPort(80);
-    cred.setUsername("dib");
-    cred.setPassword("letmein");
-    svnCredRepo.save(cred);
 
-    ProjectGroup pg = new ProjectGroup();
-    pg.setName("Group 1");
-    projectGroupRepo.save(pg);
+    if( contextRefreshedEvent.getApplicationContext().getDisplayName().indexOf( "Root" ) == -1 )
+    {
+      return;
+    }
 
-    Project p1 = new Project();
-    p1.setCredentials(svnCredRepo.findByName("Foo Svn Cred"));
-    p1.setName("FooBar");
-    p1.setPath("/svn/foo");
-    p1.setXpathExpression("/foo/bar");
-    p1.setProjectGroup(pg);
-    projectRepo.save(p1);
+    System.out.println("HERHERH \n\n\n\n\n");
+
+    try
+    {
+        Properties props = new Properties();
+        props.load( new FileInputStream( "/home/jdavis/svn.props" ) );
+
+        SvnCredential cred = new SvnCredential();
+        cred.setName( "TLC" );
+        cred.setHost( props.getProperty( "host" ) );
+        cred.setUsername( props.getProperty( "user" ) );
+        cred.setPassword( props.getProperty( "pass" ) );
+        cred.setProtocol( "http" );
+        cred.setPort( 80 );
+        cred = svnCredRepo.save( cred );
+
+        ProjectGroup pg = new ProjectGroup();
+        pg.setName( "Group 1" );
+        pg = projectGroupRepo.save( pg );
+
+        Project p1 = new Project();
+        p1.setCredentials( svnCredRepo.findByName( "TLC" ) );
+        p1.setName( "LS2P Trunk" );
+        p1.setPath( props.getProperty( "path" ) );
+        p1.setXpathExpression( "/project/version/text()" );
+        p1.setProjectGroup( pg );
+        projectRepo.save( p1 );
+    }
+    catch ( Exception e )
+    {
+      e.printStackTrace();
+    }
   }
 }
