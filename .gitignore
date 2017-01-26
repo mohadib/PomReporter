@@ -14,3 +14,11 @@ hs_err_pid*
 *.iml
 /target
 .idea
+
+# ember
+src/main/webapp/assets/
+src/main/webapp/index.html
+src/main/webapp/crossdomain.xml
+src/main/webapp/robots.txt
+src/main/webapp/testem.js
+src/main/webapp/tests

@@ -43,12 +43,10 @@ public class LoadData implements ApplicationListener<ContextRefreshedEvent>
       return;
     }
 
-    System.out.println("HERHERH \n\n\n\n\n");
-
     try
     {
         Properties props = new Properties();
-        props.load( new FileInputStream( "/home/jdavis/svn.props" ) );
+        props.load( new FileInputStream( "/home/mohadib/svn.props" ) );
 
         SvnCredential cred = new SvnCredential();
         cred.setName( "TLC" );

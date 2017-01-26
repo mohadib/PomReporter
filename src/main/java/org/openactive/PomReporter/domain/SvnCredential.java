@@ -12,7 +12,7 @@ import java.util.List;
  */
 @Entity
 @Table( name = "SvnCredential")
-@JsonApiResource(type = "svncredentials")
+@JsonApiResource(type = "credentials")
 public class SvnCredential
 {
   @JsonApiId

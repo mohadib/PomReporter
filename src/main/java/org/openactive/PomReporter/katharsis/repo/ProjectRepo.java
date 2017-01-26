@@ -30,7 +30,7 @@ public class ProjectRepo
 	@JsonApiFindAll
 	public ResourceList<Project> findAll( QuerySpec querySpec )
 	{
-		return querySpec.apply( dao.findAll() );
+		return querySpec.apply( dao.findAllWithProjectsEagerlyLoaded() );
 	}
 
 	@JsonApiFindAllWithIds

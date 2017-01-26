@@ -16,7 +16,7 @@ import java.util.List;
  */
 @Entity
 @Table( name = "projectgroup")
-@JsonApiResource(type = "projectgroups")
+@JsonApiResource(type = "groups")
 @NoArgsConstructor
 public class ProjectGroup
 {
