@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.List;
@@ -32,7 +33,12 @@ public class CredentialsController
 	@GetMapping("/{id}")
 	public SvnCredential get( @PathVariable("id") Integer id )
 	{
-		return credenitalDAO.findByIdAndFetchProjectsEagerly( id );
+		SvnCredential cred = credenitalDAO.findByIdAndFetchProjectsEagerly( id );
+		if( cred == null )
+		{
+			throw new EntityNotFoundException();
+		}
+		return cred;
 	}
 
 	@PatchMapping
@@ -62,6 +68,11 @@ public class CredentialsController
 		if( exception instanceof DataIntegrityViolationException )
 		{
 			error.setMsg( exception.getCause().getCause().getMessage()  );
+		}
+		else if( exception instanceof EntityNotFoundException )
+		{
+			error.setCode( 404 );
+			error.setMsg("Entity not found");
 		}
 
 		return new ResponseEntity<RestError>( error, HttpStatus.valueOf( error.getCode() ) );
