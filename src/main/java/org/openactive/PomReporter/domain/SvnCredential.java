@@ -1,8 +1,7 @@
 package org.openactive.PomReporter.domain;
 
-import io.katharsis.resource.annotations.JsonApiId;
-import io.katharsis.resource.annotations.JsonApiResource;
-import io.katharsis.resource.annotations.JsonApiToMany;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javax.persistence.*;
 import java.util.List;
@@ -12,16 +11,13 @@ import java.util.List;
  */
 @Entity
 @Table( name = "SvnCredential")
-@JsonApiResource(type = "credentials")
 public class SvnCredential
 {
-  @JsonApiId
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY )
   @Column( nullable = false, unique = true )
   private Integer id;
 
-  @JsonApiToMany( opposite = "credentials")
   @OneToMany( fetch = FetchType.LAZY , mappedBy="credentials", cascade = CascadeType.REMOVE, orphanRemoval = true)
   private List<Project> projects;
 
@@ -73,11 +69,13 @@ public class SvnCredential
     this.username = username;
   }
 
+  @JsonIgnore
   public String getPassword()
   {
     return password;
   }
 
+  @JsonProperty
   public void setPassword( String password )
   {
     this.password = password;

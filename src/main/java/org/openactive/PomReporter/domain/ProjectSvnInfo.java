@@ -1,9 +1,5 @@
 package org.openactive.PomReporter.domain;
 
-import io.katharsis.resource.annotations.JsonApiId;
-import io.katharsis.resource.annotations.JsonApiResource;
-import io.katharsis.resource.annotations.JsonApiToOne;
-
 import javax.persistence.*;
 import java.util.Date;
 
@@ -12,10 +8,8 @@ import java.util.Date;
  */
 @Entity
 @Table( name = "ProjectSvnInfo")
-@JsonApiResource(type = "projectsvninfos")
 public class ProjectSvnInfo
 {
-  @JsonApiId
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY )
   @Column( nullable = false, unique = true )
@@ -29,7 +23,6 @@ public class ProjectSvnInfo
   @Column(name = "created", nullable = false )
   private Date created;
 
-  @JsonApiToOne
   @OneToOne( optional = false )
   private Project project;
 

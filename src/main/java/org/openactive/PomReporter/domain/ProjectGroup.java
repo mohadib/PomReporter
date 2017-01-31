@@ -1,12 +1,5 @@
 package org.openactive.PomReporter.domain;
 
-import io.katharsis.resource.annotations.JsonApiId;
-import io.katharsis.resource.annotations.JsonApiIncludeByDefault;
-import io.katharsis.resource.annotations.JsonApiResource;
-import io.katharsis.resource.annotations.JsonApiToMany;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.openactive.PomReporter.domain.Project;
 
 import javax.persistence.*;
 import java.util.List;
@@ -16,11 +9,8 @@ import java.util.List;
  */
 @Entity
 @Table( name = "projectgroup")
-@JsonApiResource(type = "groups")
-@NoArgsConstructor
 public class ProjectGroup
 {
-	@JsonApiId
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY )
 	@Column( nullable = false, unique = true )
@@ -29,8 +19,6 @@ public class ProjectGroup
 	@Column( nullable = false, length = 100, unique = true)
 	private String name;
 
-	@JsonApiIncludeByDefault
-	@JsonApiToMany( opposite = "projectGroup" )
 	@OneToMany( fetch = FetchType.EAGER, mappedBy = "projectGroup")
 	private List<Project> projects;
 
