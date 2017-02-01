@@ -18,6 +18,7 @@ public class SvnCredential
   @Column( nullable = false, unique = true )
   private Integer id;
 
+  @JsonIgnore
   @OneToMany( fetch = FetchType.LAZY , mappedBy="credentials", cascade = CascadeType.REMOVE, orphanRemoval = true)
   private List<Project> projects;
 

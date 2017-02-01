@@ -21,60 +21,60 @@ import java.util.List;
 @RequestMapping("/credentials")
 public class CredentialsController
 {
-	@Autowired
-	private SvnCredenitalDAO credenitalDAO;
+  @Autowired
+  private SvnCredenitalDAO credenitalDAO;
 
-	@GetMapping
-	public List<SvnCredential> getAll()
-	{
-		return credenitalDAO.findAllAndFetchProjectsEagerly();
-	}
+  @GetMapping
+  public List<SvnCredential> getAll()
+  {
+    List<SvnCredential> creds = credenitalDAO.findAll();
+    return creds;
+  }
 
-	@GetMapping("/{id}")
-	public SvnCredential get( @PathVariable("id") Integer id )
-	{
-		SvnCredential cred = credenitalDAO.findByIdAndFetchProjectsEagerly( id );
-		if( cred == null )
-		{
-			throw new EntityNotFoundException();
-		}
-		return cred;
-	}
+  @GetMapping("/{id}")
+  public SvnCredential get(@PathVariable("id") Integer id)
+  {
+    SvnCredential cred = credenitalDAO.findByIdAndFetchProjectsEagerly(id);
+    if (cred == null)
+    {
+      throw new EntityNotFoundException();
+    }
+    return cred;
+  }
 
-	@PatchMapping
-	public SvnCredential patch( @RequestBody SvnCredential credential )
-	{
-		SvnCredential orig = credenitalDAO.findByIdAndFetchProjectsEagerly( credential.getId() );
-		orig.setName( credential.getName() );
-		orig.setProtocol( credential.getProtocol() );
-		orig.setPort( credential.getPort() );
-		orig.setHost( credential.getHost() );
-		orig.setUsername( credential.getUsername() );
-		orig.setPassword( credential.getPassword() );
-		return credenitalDAO.save( orig );
-	}
+  @PatchMapping
+  public SvnCredential patch(@RequestBody SvnCredential credential)
+  {
+    SvnCredential orig = credenitalDAO.findByIdAndFetchProjectsEagerly(credential.getId());
+    orig.setName(credential.getName());
+    orig.setProtocol(credential.getProtocol());
+    orig.setPort(credential.getPort());
+    orig.setHost(credential.getHost());
+    orig.setUsername(credential.getUsername());
+    orig.setPassword(credential.getPassword());
+    return credenitalDAO.save(orig);
+  }
 
-	@PostMapping
-	public SvnCredential post( @RequestBody SvnCredential credential )
-	{
-		return credenitalDAO.save( credential );
-	}
+  @PostMapping
+  public SvnCredential post(@RequestBody SvnCredential credential)
+  {
+    return credenitalDAO.save(credential);
+  }
 
-	@ExceptionHandler( { Exception.class } )
-	private ResponseEntity<RestError> handleBadRequest( HttpServletRequest req, Exception exception )
-	{
-		RestError error = new RestError( 500, "Internal Error" );
+  @ExceptionHandler({Exception.class})
+  private ResponseEntity<RestError> handleBadRequest(HttpServletRequest req, Exception exception)
+  {
+    RestError error = new RestError(500, "Internal Error");
 
-		if( exception instanceof DataIntegrityViolationException )
-		{
-			error.setMsg( exception.getCause().getCause().getMessage()  );
-		}
-		else if( exception instanceof EntityNotFoundException )
-		{
-			error.setCode( 404 );
-			error.setMsg("Entity not found");
-		}
+    if (exception instanceof DataIntegrityViolationException)
+    {
+      error.setMsg(exception.getCause().getCause().getMessage());
+    } else if (exception instanceof EntityNotFoundException)
+    {
+      error.setCode(404);
+      error.setMsg("Entity not found");
+    }
 
-		return new ResponseEntity<RestError>( error, HttpStatus.valueOf( error.getCode() ) );
-	}
+    return new ResponseEntity<RestError>(error, HttpStatus.valueOf(error.getCode()));
+  }
 }
