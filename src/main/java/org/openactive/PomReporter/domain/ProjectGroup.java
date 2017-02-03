@@ -19,7 +19,7 @@ public class ProjectGroup
 	@Column( nullable = false, length = 100, unique = true)
 	private String name;
 
-	@OneToMany( fetch = FetchType.EAGER, mappedBy = "projectGroup")
+	@OneToMany( fetch = FetchType.EAGER, mappedBy = "projectGroup", cascade = CascadeType.PERSIST)
 	private List<Project> projects;
 
 	public Integer getId()

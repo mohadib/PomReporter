@@ -1,5 +1,7 @@
 package org.openactive.PomReporter.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
 import java.util.Date;
 
@@ -23,6 +25,7 @@ public class ProjectSvnInfo
   @Column(name = "created", nullable = false )
   private Date created;
 
+  @JsonIgnore
   @OneToOne( optional = false )
   private Project project;
 
