@@ -22,6 +22,9 @@ public class ProjectGroup
 	@OneToMany( fetch = FetchType.EAGER, mappedBy = "projectGroup", cascade = CascadeType.PERSIST)
 	private List<Project> projects;
 
+	@Basic
+	private boolean isDefault;
+
 	public Integer getId()
 	{
 		return id;
@@ -50,6 +53,26 @@ public class ProjectGroup
 	public void setProjects( List<Project> projects )
 	{
 		this.projects = projects;
+	}
+
+	public boolean isDefault()
+	{
+		return isDefault;
+	}
+
+	public boolean getIsDefault()
+	{
+		return isDefault;
+	}
+
+	public void setIsDefault( boolean aDefault )
+	{
+		isDefault = aDefault;
+	}
+
+	public void setDefault( boolean aDefault )
+	{
+		isDefault = aDefault;
 	}
 
 	@Override

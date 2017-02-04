@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityNotFoundException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -21,17 +22,42 @@ public class ProjectGroupController
   private ProjectDAO projectDAO;
 
 
+  @DeleteMapping("/{id}")
+  public void delete( @PathVariable("id") Integer id )
+  {
+    ProjectGroup pg = projectGroupDAO.findOne( id );
+    for( Project project : pg.getProjects() )
+    {
+      project.setProjectGroup( null );
+      projectDAO.save( project );
+    }
+    pg.getProjects().clear();
+    projectGroupDAO.delete( pg.getId() );
+  }
+
   @PostMapping
   public ProjectGroup post(@RequestBody ProjectGroup projectGroup)
   {
-    return projectGroupDAO.save(projectGroup);
+    List<Project> projects = new ArrayList<>( projectGroup.getProjects() );
+    projectGroup.getProjects().clear();
+    projectGroup = projectGroupDAO.save(projectGroup);
+    for( Project p : projects )
+    {
+      p.setProjectGroup( projectGroup );
+      projectDAO.save( p );
+    }
+    return projectGroupDAO.findOne( projectGroup.getId() );
   }
 
   @PatchMapping
   public ProjectGroup patch(@RequestBody ProjectGroup projectGroup)
   {
     ProjectGroup orig = projectGroupDAO.findOne(projectGroup.getId());
-    orig.setName(projectGroup.getName());
+
+    if( projectGroup.isDefault() && !orig.isDefault() )
+    {
+      projectGroupDAO.removeDefault();
+    }
 
     // remove old existing links that are not present in projectGroup now
     Iterator<Project> it = orig.getProjects().iterator();
@@ -45,13 +71,20 @@ public class ProjectGroupController
       }
     }
 
+    orig.getProjects().clear();
+    orig.setName(projectGroup.getName());
+    orig.setDefault(projectGroup.isDefault());
+    orig = projectGroupDAO.save(orig);
+
     // make sure all link in projectGroup are valid
     for( Project p : projectGroup.getProjects() )
     {
-      p.setProjectGroup(orig);
-      projectDAO.save(p);
+      Project proj = projectDAO.findOne( p.getId() );
+      proj.setProjectGroup( orig );
+      projectDAO.save(proj);
     }
-    return projectGroupDAO.save(orig);
+
+    return projectGroupDAO.findOne( orig.getId() );
   }
 
   @GetMapping
