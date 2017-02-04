@@ -15,10 +15,13 @@ hs_err_pid*
 /target
 .idea
 
-# ember
+# react
 src/main/webapp/assets/
 src/main/webapp/index.html
 src/main/webapp/crossdomain.xml
 src/main/webapp/robots.txt
 src/main/webapp/testem.js
 src/main/webapp/tests
+src/main/webapp/asset-manifest.json
+src/main/webapp/favicon.ico
+src/main/webapp/static/
