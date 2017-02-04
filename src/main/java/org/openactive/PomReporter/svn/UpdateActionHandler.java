@@ -18,7 +18,7 @@ public class UpdateActionHandler implements SvnActionHandler
   public void handle(SvnActionContext context) throws SVNException
   {
     SVNUpdateClient client = context.manager.getUpdateClient();
-    revision = client.doUpdate( new File( context.svnProjectDir, "pom.xml"), SVNRevision.HEAD, SVNDepth.EMPTY, false, false);
+    revision = client.doUpdate( new File( context.svnProjectDir, "pom.xml"), SVNRevision.HEAD, SVNDepth.FILES, false, false);
   }
 
   public long getRevision()
