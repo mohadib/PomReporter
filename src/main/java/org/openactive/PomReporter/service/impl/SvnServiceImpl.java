@@ -6,6 +6,7 @@ import org.openactive.PomReporter.domain.ProjectSvnInfo;
 import org.openactive.PomReporter.domain.SvnCredential;
 import org.openactive.PomReporter.service.SvnService;
 import org.openactive.PomReporter.svn.*;
+import org.openactive.PomReporter.util.EncyrptionUtil;
 import org.openactive.PomReporter.util.FileUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,6 +15,9 @@ import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.wc.SVNClientManager;
 import org.tmatesoft.svn.core.wc.SVNInfo;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.security.GeneralSecurityException;
 import java.util.Date;
 
 /**
@@ -31,8 +35,14 @@ public class SvnServiceImpl implements SvnService
   @Autowired
   private ProjectSvnInfoDAO projectSvnInfoDAO;
 
+  @Value("${encryption.secret}")
+  private String secret;
+
+  @Value("${encryption.salt}")
+  private String salt;
+
   @Override
-  public void checkoutProject(Project project) throws SVNException
+  public void checkoutProject(Project project) throws SVNException, IOException, GeneralSecurityException
   {
     if ( project.getSvnInfo() != null )
     {
@@ -50,7 +60,7 @@ public class SvnServiceImpl implements SvnService
   }
 
   @Override
-  public void updateProject(Project project) throws SVNException
+  public void updateProject(Project project) throws SVNException, IOException, GeneralSecurityException
   {
     UpdateActionHandler handler = new UpdateActionHandler();
     doSvnAction( project, handler );
@@ -62,7 +72,7 @@ public class SvnServiceImpl implements SvnService
   }
 
   @Override
-  public void getLogs(Project project) throws SVNException
+  public void getLogs(Project project) throws SVNException, IOException, GeneralSecurityException
   {
     StringBuilder buff = new StringBuilder();
     LogActionHandler handler = new LogActionHandler( le -> {
@@ -75,7 +85,7 @@ public class SvnServiceImpl implements SvnService
   }
 
   @Override
-  public void getInfo(Project project) throws SVNException
+  public void getInfo(Project project) throws SVNException, IOException, GeneralSecurityException
   {
     InfoActionHandler handler = new InfoActionHandler();
     doSvnAction( project, handler );
@@ -94,14 +104,16 @@ public class SvnServiceImpl implements SvnService
     return url;
   }
 
-  private void doSvnAction(Project project, SvnActionHandler handler ) throws SVNException
+  private void doSvnAction(Project project, SvnActionHandler handler ) throws SVNException, IOException, GeneralSecurityException
   {
     SvnCredential creds = project.getCredentials();
+
+    String passClear = new EncyrptionUtil().decrypt(creds.getPassword(), secret.toCharArray(), salt.getBytes("UTF-8") );
 
     SvnActionContext context = new SvnActionContext();
     context.project = project;
     context.svnProjectDir = new FileUtil().getOrCreateSvnProjectDir(project, baseFilePath, allowedChars);
-    context.manager = SVNClientManager.newInstance(null, creds.getUsername(), creds.getPassword());
+    context.manager = SVNClientManager.newInstance(null, creds.getUsername(), passClear);
 
     try
     {

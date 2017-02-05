@@ -1,9 +1,12 @@
 package org.openactive.PomReporter.controller;
 
+import org.openactive.PomReporter.service.DeleteService;
+import org.openactive.PomReporter.util.EncyrptionUtil;
 import org.openactive.PomReporter.controller.error.RestError;
 import org.openactive.PomReporter.dao.SvnCredenitalDAO;
 import org.openactive.PomReporter.domain.SvnCredential;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,7 +14,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
+import java.io.UnsupportedEncodingException;
+import java.security.GeneralSecurityException;
 import java.util.List;
 
 /**
@@ -23,6 +27,22 @@ public class CredentialsController
 {
   @Autowired
   private SvnCredenitalDAO credenitalDAO;
+
+  @Autowired
+  private DeleteService deleteService;
+
+  @Value("${encryption.secret}")
+  private String secret;
+
+  @Value("${encryption.salt}")
+  private String salt;
+
+  @DeleteMapping("/{id}")
+  public void delete( @PathVariable("id") Integer id) throws Exception
+  {
+    SvnCredential credential = credenitalDAO.findOne(id);
+    deleteService.deleteCredentials(credential);
+  }
 
   @GetMapping
   public List<SvnCredential> getAll()
@@ -43,7 +63,7 @@ public class CredentialsController
   }
 
   @PatchMapping
-  public SvnCredential patch(@RequestBody SvnCredential credential)
+  public SvnCredential patch(@RequestBody SvnCredential credential) throws UnsupportedEncodingException, GeneralSecurityException
   {
     SvnCredential orig = credenitalDAO.findByIdAndFetchProjectsEagerly(credential.getId());
     orig.setName(credential.getName());
@@ -51,30 +71,16 @@ public class CredentialsController
     orig.setPort(credential.getPort());
     orig.setHost(credential.getHost());
     orig.setUsername(credential.getUsername());
-    orig.setPassword(credential.getPassword());
+    String encPass = new EncyrptionUtil().encrypt(credential.getPassword(), secret.toCharArray(), salt.getBytes("UTF-8"));
+    orig.setPassword(encPass);
     return credenitalDAO.save(orig);
   }
 
   @PostMapping
-  public SvnCredential post(@RequestBody SvnCredential credential)
+  public SvnCredential post(@RequestBody SvnCredential credential) throws UnsupportedEncodingException, GeneralSecurityException
   {
+    String encPass = new EncyrptionUtil().encrypt(credential.getPassword(), secret.toCharArray(), salt.getBytes("UTF-8"));
+    credential.setPassword(encPass);
     return credenitalDAO.save(credential);
-  }
-
-  @ExceptionHandler({Exception.class})
-  private ResponseEntity<RestError> handleBadRequest(HttpServletRequest req, Exception exception)
-  {
-    RestError error = new RestError(500, "Internal Error");
-
-    if (exception instanceof DataIntegrityViolationException)
-    {
-      error.setMsg(exception.getCause().getCause().getMessage());
-    } else if (exception instanceof EntityNotFoundException)
-    {
-      error.setCode(404);
-      error.setMsg("Entity not found");
-    }
-
-    return new ResponseEntity<RestError>(error, HttpStatus.valueOf(error.getCode()));
   }
 }

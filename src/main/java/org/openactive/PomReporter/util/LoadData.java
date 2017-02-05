@@ -8,6 +8,7 @@ import org.openactive.PomReporter.domain.ProjectGroup;
 import org.openactive.PomReporter.domain.SvnCredential;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -24,6 +25,9 @@ import java.util.Properties;
 @Component
 public class LoadData implements ApplicationListener<ContextRefreshedEvent>
 {
+  @Value("${environment}")
+  private String environment;
+
   @Autowired
   private SvnCredenitalDAO svnCredRepo;
 
@@ -37,6 +41,10 @@ public class LoadData implements ApplicationListener<ContextRefreshedEvent>
   @Override
   public void onApplicationEvent( ContextRefreshedEvent contextRefreshedEvent )
   {
+    if( environment.equals("PROD"))
+    {
+      return;
+    }
 
     if( contextRefreshedEvent.getApplicationContext().getDisplayName().indexOf( "Root" ) == -1 )
     {

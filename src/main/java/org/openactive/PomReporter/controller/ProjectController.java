@@ -4,6 +4,7 @@ import org.openactive.PomReporter.dao.ProjectDAO;
 import org.openactive.PomReporter.dao.SvnCredenitalDAO;
 import org.openactive.PomReporter.domain.Project;
 import org.openactive.PomReporter.domain.SvnCredential;
+import org.openactive.PomReporter.service.DeleteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,7 +21,14 @@ public class ProjectController
   @Autowired
   private ProjectDAO projectDAO;
   @Autowired
-  private SvnCredenitalDAO svnCredenitalDAO;
+  private DeleteService deleteService;
+
+  @DeleteMapping("/{id}")
+  public void delete(@PathVariable("id") Integer id) throws Exception
+  {
+    Project project = projectDAO.findOne(id);
+    deleteService.deleteProject(project);
+  }
 
   @GetMapping
   public List<Project> getAll()

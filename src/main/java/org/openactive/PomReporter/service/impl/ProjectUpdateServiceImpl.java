@@ -33,9 +33,11 @@ public class ProjectUpdateServiceImpl
   @Autowired
   private LockServiceImpl lockService;
 
-  //@Scheduled( fixedRate = 60000)
+  // if svn.update.delay is not setup in properties, then assume we are in dev and basically never run
+  @Scheduled( fixedRateString = "${svn.update.rate}", initialDelayString = "${svn.update.delay:9223372036854775807}")
   public void run() throws InterruptedException
   {
+    LOG.info("Running ProjectUpdateService");
     Lock pomRunLock = lockService.getPomServiceRunLock();
     if( pomRunLock.tryLock( 60, TimeUnit.SECONDS ))
     {

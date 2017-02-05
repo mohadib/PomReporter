@@ -4,6 +4,7 @@ import org.openactive.PomReporter.dao.ProjectDAO;
 import org.openactive.PomReporter.dao.ProjectGroupDAO;
 import org.openactive.PomReporter.domain.Project;
 import org.openactive.PomReporter.domain.ProjectGroup;
+import org.openactive.PomReporter.service.DeleteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,19 +21,14 @@ public class ProjectGroupController
   private ProjectGroupDAO projectGroupDAO;
   @Autowired
   private ProjectDAO projectDAO;
-
+  @Autowired
+  private DeleteService deleteService;
 
   @DeleteMapping("/{id}")
   public void delete( @PathVariable("id") Integer id )
   {
     ProjectGroup pg = projectGroupDAO.findOne( id );
-    for( Project project : pg.getProjects() )
-    {
-      project.setProjectGroup( null );
-      projectDAO.save( project );
-    }
-    pg.getProjects().clear();
-    projectGroupDAO.delete( pg.getId() );
+    deleteService.deleteProjectGroup(pg);
   }
 
   @PostMapping
