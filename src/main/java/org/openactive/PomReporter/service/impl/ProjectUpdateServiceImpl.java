@@ -50,6 +50,10 @@ public class ProjectUpdateServiceImpl
         pomRunLock.unlock();
       }
     }
+    else
+    {
+      LOG.info("Could not acquire lock");
+    }
   }
 
   private void updateProjects()

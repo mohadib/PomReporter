@@ -13,6 +13,8 @@ import org.openactive.PomReporter.domain.Project;
 import org.openactive.PomReporter.domain.ProjectGroup;
 import org.openactive.PomReporter.domain.ProjectSvnInfo;
 import org.openactive.PomReporter.domain.SvnCredential;
+import org.openactive.PomReporter.exceptions.LockTimeoutException;
+import org.openactive.PomReporter.service.impl.LockServiceImpl;
 import org.openactive.PomReporter.util.FileUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,6 +26,10 @@ import java.io.File;
 import java.sql.Connection;
 import java.sql.Statement;
 import java.util.Date;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Lock;
 
 import static org.junit.Assert.*;
 
@@ -45,6 +51,9 @@ public class DeleteServiceTest
 
   @Autowired
   private ProjectSvnInfoDAO projectSvnInfoDAO;
+
+  @Autowired
+  private LockServiceImpl lockService;
 
   @Value("${svn.checkoutProject.base.path}")
   private String svnBaseDir;
@@ -165,11 +174,87 @@ public class DeleteServiceTest
   }
 
   @Test
-  public void testDeleteProjectGroup()
+  public void testDeleteProjectGroup() throws Exception
   {
     deleteService.deleteProjectGroup(group);
     assertNull( projectGroupDAO.findOne(group.getId()) );
     assertNotNull( projectDAO.findOne(project.getId()));
     assertNotNull( svnCredenitalDAO.findOne( cred.getId()));
+  }
+
+
+  // test that an exception will be thrown if lock can not be acquired.
+  @Test
+  public void testLockTimeout() throws Exception
+  {
+    Lock lock = lockService.getPomServiceRunLock();
+    AtomicBoolean threwException = new AtomicBoolean(false);
+    if( lock.tryLock())
+    {
+      try
+      {
+        Thread t = new Thread(() ->
+        {
+          try
+          {
+            deleteService.deleteProject(project);
+          } catch (Exception e)
+          {
+            threwException.set(e instanceof LockTimeoutException);
+          }
+        });
+        t.start();
+        t.join();
+        assertTrue(threwException.get());
+      }
+      finally
+      {
+        lock.unlock();
+      }
+    }
+    else
+    {
+      fail("Could not acquire lock");
+    }
+  }
+
+  // test that if cant lock at first, but then can, no exception... :S
+  @Test
+  public void testLockTimeoutSuccess() throws Exception
+  {
+    Lock lock = lockService.getPomServiceRunLock();
+    AtomicBoolean threwException = new AtomicBoolean(false);
+
+    Thread t = new Thread(() ->
+    {
+      try
+      {
+        deleteService.deleteProject(project);
+      }
+      catch (Exception e)
+      {
+        threwException.set(e instanceof LockTimeoutException);
+      }
+    });
+
+    if( lock.tryLock())
+    {
+      try
+      {
+        t.start();
+      }
+      finally
+      {
+        lock.unlock();
+      }
+      t.join();
+      assertFalse( threwException.get() );
+      assertNull( projectDAO.findOne( project.getId()));
+      assertFalse(projectDir.exists());
+    }
+    else
+    {
+      fail("Could not acquire lock");
+    }
   }
 }

@@ -1,6 +1,7 @@
 package org.openactive.PomReporter.controller.error;
 
 import org.apache.log4j.Logger;
+import org.openactive.PomReporter.exceptions.LockTimeoutException;
 import org.openactive.PomReporter.service.impl.DeleteServiceImpl;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -32,6 +33,11 @@ public class ExceptionMapper
     {
       error.setCode(404);
       error.setMsg("Entity not found");
+    }
+    else if( exception instanceof LockTimeoutException)
+    {
+      error.setCode(503);
+      error.setMsg("Could not lock entity for deleting. Try again later.");
     }
 
     return new ResponseEntity<RestError>(error, HttpStatus.valueOf(error.getCode()));

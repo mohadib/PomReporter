@@ -9,6 +9,7 @@ import org.openactive.PomReporter.domain.Project;
 import org.openactive.PomReporter.domain.ProjectGroup;
 import org.openactive.PomReporter.domain.ProjectSvnInfo;
 import org.openactive.PomReporter.domain.SvnCredential;
+import org.openactive.PomReporter.exceptions.LockTimeoutException;
 import org.openactive.PomReporter.service.DeleteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,11 +43,14 @@ public class DeleteServiceImpl implements DeleteService
   @Value("${svn.checkoutProject.base.path}")
   private String baseFilePath;
 
+  @Value("${entity.delete.lock.timeout:90}")
+  private long lockTimeout;
+
   @Override
   public void deleteProject(Project project) throws Exception
   {
     Lock pomRunLock = lockService.getPomServiceRunLock();
-    if (pomRunLock.tryLock(90, TimeUnit.SECONDS))
+    if (pomRunLock.tryLock(lockTimeout, TimeUnit.SECONDS))
     {
       try
       {
@@ -60,19 +64,40 @@ public class DeleteServiceImpl implements DeleteService
         pomRunLock.unlock();
       }
     }
+    else
+    {
+      LOG.info("Could not acquire lock");
+      throw new LockTimeoutException("Could not acquire lock");
+    }
   }
 
   @Override
-  public void deleteProjectGroup(ProjectGroup projectGroup)
+  public void deleteProjectGroup(ProjectGroup projectGroup) throws Exception
   {
     // remove group from projects
-    for( Project project : projectGroup.getProjects() )
+    Lock pomRunLock = lockService.getPomServiceRunLock();
+    if (pomRunLock.tryLock(lockTimeout, TimeUnit.SECONDS))
     {
-      project.setProjectGroup(null);
-      projectDAO.save(project);
-    }
+      try
+      {
+        for (Project project : projectGroup.getProjects())
+        {
+          project.setProjectGroup(null);
+          projectDAO.save(project);
+        }
 
-    projectGroupDAO.delete(projectGroup);
+        projectGroupDAO.delete(projectGroup);
+      }
+      finally
+      {
+        pomRunLock.unlock();
+      }
+    }
+    else
+    {
+      LOG.info("Could not acquire lock");
+      throw new LockTimeoutException("Could not acquire lock");
+    }
   }
 
   @Override
@@ -82,7 +107,7 @@ public class DeleteServiceImpl implements DeleteService
     credential = svnCredenitalDAO.findByIdAndFetchProjectsEagerly(credential.getId());
 
     Lock pomRunLock = lockService.getPomServiceRunLock();
-    if (pomRunLock.tryLock(90, TimeUnit.SECONDS))
+    if (pomRunLock.tryLock(lockTimeout, TimeUnit.SECONDS))
     {
       try
       {
@@ -94,10 +119,16 @@ public class DeleteServiceImpl implements DeleteService
 
         svnCredenitalDAO.delete(credential);
 
-      } finally
+      }
+      finally
       {
         pomRunLock.unlock();
       }
+    }
+    else
+    {
+      LOG.info("Could not acquire lock");
+      throw new LockTimeoutException("Could not acquire lock");
     }
   }
 

@@ -13,5 +13,5 @@ public interface DeleteService
 
   void deleteCredentials(SvnCredential credential) throws Exception;
 
-  void deleteProjectGroup(ProjectGroup projectGroup);
+  void deleteProjectGroup(ProjectGroup projectGroup) throws Exception;
 }

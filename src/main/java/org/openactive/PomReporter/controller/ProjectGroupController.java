@@ -25,7 +25,7 @@ public class ProjectGroupController
   private DeleteService deleteService;
 
   @DeleteMapping("/{id}")
-  public void delete( @PathVariable("id") Integer id )
+  public void delete( @PathVariable("id") Integer id ) throws Exception
   {
     ProjectGroup pg = projectGroupDAO.findOne( id );
     deleteService.deleteProjectGroup(pg);
