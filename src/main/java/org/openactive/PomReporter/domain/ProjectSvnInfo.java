@@ -40,7 +40,7 @@ public class ProjectSvnInfo
   @Basic( optional = true )
   private String xpathResult;
 
-  @Column( length = 1000 )
+  @Column( length = 5000 )
   private String logEntries;
 
   @Basic
