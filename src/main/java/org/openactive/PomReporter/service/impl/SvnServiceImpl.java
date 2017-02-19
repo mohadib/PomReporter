@@ -6,7 +6,7 @@ import org.openactive.PomReporter.domain.ProjectSvnInfo;
 import org.openactive.PomReporter.domain.SvnCredential;
 import org.openactive.PomReporter.service.SvnService;
 import org.openactive.PomReporter.svn.*;
-import org.openactive.PomReporter.util.EncyrptionUtil;
+import org.openactive.PomReporter.util.EncryptionUtil;
 import org.openactive.PomReporter.util.FileUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,7 +16,6 @@ import org.tmatesoft.svn.core.wc.SVNClientManager;
 import org.tmatesoft.svn.core.wc.SVNInfo;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
 import java.util.Date;
 
@@ -108,7 +107,7 @@ public class SvnServiceImpl implements SvnService
   {
     SvnCredential creds = project.getCredentials();
 
-    String passClear = new EncyrptionUtil().decrypt(creds.getPassword(), secret.toCharArray(), salt.getBytes("UTF-8") );
+    String passClear = new EncryptionUtil().decrypt(creds.getPassword(), secret.toCharArray(), salt.getBytes("UTF-8" ) );
 
     SvnActionContext context = new SvnActionContext();
     context.project = project;

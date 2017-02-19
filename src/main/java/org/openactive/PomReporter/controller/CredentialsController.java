@@ -1,19 +1,14 @@
 package org.openactive.PomReporter.controller;
 
 import org.openactive.PomReporter.service.DeleteService;
-import org.openactive.PomReporter.util.EncyrptionUtil;
-import org.openactive.PomReporter.controller.error.RestError;
+import org.openactive.PomReporter.util.EncryptionUtil;
 import org.openactive.PomReporter.dao.SvnCredenitalDAO;
 import org.openactive.PomReporter.domain.SvnCredential;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityNotFoundException;
-import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
 import java.util.List;
@@ -71,7 +66,7 @@ public class CredentialsController
     orig.setPort(credential.getPort());
     orig.setHost(credential.getHost());
     orig.setUsername(credential.getUsername());
-    String encPass = new EncyrptionUtil().encrypt(credential.getPassword(), secret.toCharArray(), salt.getBytes("UTF-8"));
+    String encPass = new EncryptionUtil().encrypt(credential.getPassword(), secret.toCharArray(), salt.getBytes("UTF-8" ) );
     orig.setPassword(encPass);
     return credenitalDAO.save(orig);
   }
@@ -79,7 +74,7 @@ public class CredentialsController
   @PostMapping
   public SvnCredential post(@RequestBody SvnCredential credential) throws UnsupportedEncodingException, GeneralSecurityException
   {
-    String encPass = new EncyrptionUtil().encrypt(credential.getPassword(), secret.toCharArray(), salt.getBytes("UTF-8"));
+    String encPass = new EncryptionUtil().encrypt(credential.getPassword(), secret.toCharArray(), salt.getBytes("UTF-8" ) );
     credential.setPassword(encPass);
     return credenitalDAO.save(credential);
   }

@@ -13,7 +13,7 @@ import java.util.Base64;
 /**
  * Created by mohadib on 2/5/17.
  */
-public class EncyrptionUtil
+public class EncryptionUtil
 {
   public String encrypt(String property, char[] secret, byte[] salt) throws GeneralSecurityException, UnsupportedEncodingException
   {
