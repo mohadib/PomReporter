@@ -1,17 +1,18 @@
 package org.openactive.PomReporter.service.impl;
 
-import org.openactive.PomReporter.dao.ProjectSvnInfoDAO;
-import org.openactive.PomReporter.domain.Project;
-import org.openactive.PomReporter.domain.ProjectSvnInfo;
-import org.openactive.PomReporter.domain.SvnCredential;
-import org.openactive.PomReporter.service.SvnService;
+import org.apache.commons.lang3.StringUtils;
+import org.openactive.PomReporter.dao.ProjectInfoDAO;
+import org.openactive.PomReporter.domain.*;
+import org.openactive.PomReporter.domain.ProjectInfo;
+import org.openactive.PomReporter.exceptions.VCSProviderException;
+import org.openactive.PomReporter.service.VCSProvider;
 import org.openactive.PomReporter.svn.*;
 import org.openactive.PomReporter.util.EncryptionUtil;
 import org.openactive.PomReporter.util.FileUtil;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.*;
 import org.springframework.stereotype.Service;
 import org.tmatesoft.svn.core.SVNException;
+import org.tmatesoft.svn.core.SVNURL;
 import org.tmatesoft.svn.core.wc.SVNClientManager;
 import org.tmatesoft.svn.core.wc.SVNInfo;
 
@@ -19,110 +20,150 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Date;
 
-/**
- * Created by jdavis on 1/24/17.
- */
 @Service
-public class SvnServiceImpl implements SvnService
+@Qualifier("svnVcsService")
+public class SvnServiceImpl implements VCSProvider
 {
-  @Value("${svn.checkoutProject.base.path.fileName.allowed.chars}")
-  private String allowedChars;
+	@Value( "${svn.checkoutProject.base.path.fileName.allowed.chars}" )
+	private String allowedChars;
 
-  @Value("${svn.checkoutProject.base.path}")
-  private String baseFilePath;
+	@Value( "${svn.checkoutProject.base.path}" )
+	private String baseFilePath;
 
-  @Autowired
-  private ProjectSvnInfoDAO projectSvnInfoDAO;
+	@Autowired
+	private ProjectInfoDAO projectSvnInfoDAO;
 
-  @Value("${encryption.secret}")
-  private String secret;
+	@Value( "${encryption.secret}" )
+	private String secret;
 
-  @Value("${encryption.salt}")
-  private String salt;
+	@Value( "${encryption.salt}" )
+	private String salt;
 
-  @Override
-  public void checkoutProject(Project project) throws SVNException, IOException, GeneralSecurityException
-  {
-    if ( project.getSvnInfo() != null )
-    {
-      throw new IllegalArgumentException("Project already has svnInfo? :" + project.getSvnInfo().getFilePath() );
-    }
+	@Override
+	public void checkout( Project project ) throws VCSProviderException
+	{
+		if ( project.getProjectInfo() != null )
+		{
+			throw new IllegalArgumentException(
+				"Project already has svnInfo? :" + project.getProjectInfo().getFilePath() );
+		}
 
-    CreateActionHandler handler = new CreateActionHandler();
-    doSvnAction( project,  handler);
+		CreateActionHandler handler = new CreateActionHandler();
 
-    ProjectSvnInfo info = new ProjectSvnInfo();
-    info.setProject( project );
-    info.setCreated( new Date() );
-    info.setFilePath( handler.getSvnProjectDir().getAbsolutePath() );
-    info = projectSvnInfoDAO.save( info );
-  }
+		try
+		{
+			doSvnAction( project, handler );
+		}
+		catch ( SVNException | IOException | GeneralSecurityException e )
+		{
+			e.printStackTrace();
+			throw new VCSProviderException( e );
+		}
 
-  @Override
-  public void updateProject(Project project) throws SVNException, IOException, GeneralSecurityException
-  {
-    UpdateActionHandler handler = new UpdateActionHandler();
-    doSvnAction( project, handler );
+		ProjectInfo info = new ProjectInfo();
+		info.setProject( project );
+		info.setCreated( new Date() );
+		info.setFilePath( handler.getSvnProjectDir().getAbsolutePath() );
+		info = projectSvnInfoDAO.save( info );
+	}
 
-    ProjectSvnInfo info = project.getSvnInfo();
-    info.setLastUpdated( new Date() );
-    info.setSvnRevision( handler.getRevision() );
-    projectSvnInfoDAO.save( info );
-  }
+	@Override
+	public void update( Project project ) throws VCSProviderException
+	{
+		UpdateActionHandler handler = new UpdateActionHandler();
 
-  @Override
-  public void getLogs(Project project) throws SVNException, IOException, GeneralSecurityException
-  {
-    StringBuilder buff = new StringBuilder();
-    LogActionHandler handler = new LogActionHandler( le -> {
-      String logEntry = String.format( "%s | %s | %s<EOL>\n",  le.getDate(), le.getAuthor(), le.getMessage() );
-      buff.append( logEntry );
-    });
-    doSvnAction(project, handler);
-    project.getSvnInfo().setLogEntries( buff.toString() );
-    projectSvnInfoDAO.save( project.getSvnInfo() );
-  }
+		try
+		{
+			doSvnAction( project, handler );
+		}
+		catch ( SVNException | IOException | GeneralSecurityException e )
+		{
+			e.printStackTrace();
+			throw new VCSProviderException( e );
+		}
 
-  @Override
-  public void getInfo(Project project) throws SVNException, IOException, GeneralSecurityException
-  {
-    InfoActionHandler handler = new InfoActionHandler();
-    doSvnAction( project, handler );
-    SVNInfo info = handler.getInfo();
-    project.getSvnInfo().setProjectUrl( removeUsernameFromUrl( info.getURL().toString(), project.getCredentials() ));
-    projectSvnInfoDAO.save( project.getSvnInfo() );
-  }
+		ProjectInfo info = project.getProjectInfo();
+		info.setLastUpdated( new Date() );
+		info.setRevision( handler.getRevision() + "" );
+		projectSvnInfoDAO.save( info );
+	}
 
-  private String removeUsernameFromUrl( String url, SvnCredential credential )
-  {
-    String userAndHost = String.format( "%s@%s", credential.getUsername(), credential.getHost() );
-    if( url.indexOf( userAndHost ) != -1 )
-    {
-      return url.replace( userAndHost, credential.getHost() );
-    }
-    return url;
-  }
+	@Override
+	public void getLogs( Project project ) throws VCSProviderException
+	{
+		StringBuilder buff = new StringBuilder();
+		LogActionHandler handler = new LogActionHandler( le ->
+		{
+			String logEntry = String
+				.format( "%s | %s | %s<EOL>\n", le.getDate(), le.getAuthor(), le.getMessage() );
+			buff.append( logEntry );
+		} );
 
-  private void doSvnAction(Project project, SvnActionHandler handler ) throws SVNException, IOException, GeneralSecurityException
-  {
-    SvnCredential creds = project.getCredentials();
+		try
+		{
+			doSvnAction( project, handler );
+		}
+		catch ( SVNException | IOException | GeneralSecurityException e )
+		{
+			e.printStackTrace();
+			throw new VCSProviderException( e );
+		}
 
-    String passClear = new EncryptionUtil().decrypt(creds.getPassword(), secret.toCharArray(), salt.getBytes("UTF-8" ) );
+		project.getProjectInfo().setLogEntries( buff.toString() );
+		projectSvnInfoDAO.save( project.getProjectInfo() );
+	}
 
-    SvnActionContext context = new SvnActionContext();
-    context.project = project;
-    context.svnProjectDir = new FileUtil().getOrCreateSvnProjectDir(project, baseFilePath, allowedChars);
-    context.manager = SVNClientManager.newInstance(null, creds.getUsername(), passClear);
+	@Override
+	public void getInfo( Project project ) throws VCSProviderException
+	{
+		InfoActionHandler handler = new InfoActionHandler();
 
-    try
-    {
-      handler.handle(context);
-    }
-    finally
-    {
-      context.manager.dispose();
-    }
-  }
+		try
+		{
+			doSvnAction( project, handler );
+		}
+		catch ( SVNException | IOException | GeneralSecurityException e )
+		{
+			e.printStackTrace();
+			throw new VCSProviderException( e );
+		}
+
+		SVNInfo info = handler.getInfo();
+		project.getProjectInfo().setProjectUrl( removeUsernameFromUrl( info.getURL()  ) );
+		projectSvnInfoDAO.save( project.getProjectInfo() );
+	}
+
+	private String removeUsernameFromUrl( SVNURL svnUrl )
+	{
+		String url = svnUrl.toString();
+		String userInfo = svnUrl.getUserInfo();
+		if ( StringUtils.isNotBlank( userInfo ) )
+		{
+			return url.replace( userInfo + "@", "" );
+		}
+		return url;
+	}
+
+	private void doSvnAction( Project project, SvnActionHandler handler ) throws SVNException, IOException, GeneralSecurityException
+	{
+		VCSCredential creds = project.getCredentials();
+
+		String passClear = new EncryptionUtil().decrypt( creds.getPassword(), secret.toCharArray(), salt.getBytes( "UTF-8" ) );
+
+		SvnActionContext context = new SvnActionContext();
+		context.project = project;
+		context.svnProjectDir = new FileUtil().getOrCreateSvnProjectDir( project, baseFilePath, allowedChars );
+		context.manager = SVNClientManager.newInstance( null, creds.getUsername(), passClear );
+
+		try
+		{
+			handler.handle( context );
+		}
+		finally
+		{
+			context.manager.dispose();
+		}
+	}
 }
 
 

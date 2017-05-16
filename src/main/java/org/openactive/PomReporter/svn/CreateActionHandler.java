@@ -7,9 +7,6 @@ import org.tmatesoft.svn.core.wc.SVNUpdateClient;
 
 import java.io.File;
 
-/**
- * Created by mohadib on 1/24/17.
- */
 public class CreateActionHandler implements SvnActionHandler
 {
   private File svnProjectDir;

@@ -6,9 +6,6 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Created by jdavis on 1/24/17.
- */
 public interface ProjectGroupDAO extends JpaRepository<ProjectGroup, Integer >
 {
 	ProjectGroup findByName(String name );

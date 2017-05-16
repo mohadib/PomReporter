@@ -8,7 +8,7 @@ import java.util.List;
  * Created by jdavis on 1/24/17.
  */
 @Entity
-@Table( name = "projectgroup")
+@Table( name = "PROJECTGROUP")
 public class ProjectGroup
 {
 	@Id

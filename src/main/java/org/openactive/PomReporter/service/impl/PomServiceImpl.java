@@ -1,8 +1,8 @@
 package org.openactive.PomReporter.service.impl;
 
-import org.openactive.PomReporter.dao.ProjectSvnInfoDAO;
+import org.openactive.PomReporter.dao.ProjectInfoDAO;
 import org.openactive.PomReporter.domain.Project;
-import org.openactive.PomReporter.domain.ProjectSvnInfo;
+import org.openactive.PomReporter.domain.ProjectInfo;
 import org.openactive.PomReporter.service.PomService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,12 +24,12 @@ import java.io.File;
 public class PomServiceImpl implements PomService
 {
   @Autowired
-  private ProjectSvnInfoDAO projectSvnInfoDAO;
+  private ProjectInfoDAO projectSvnInfoDAO;
 
   @Override
   public void parsePom(Project project) throws Exception
   {
-    ProjectSvnInfo info = project.getSvnInfo();
+    ProjectInfo info = project.getProjectInfo();
     File svnProjectDir = new File( info.getFilePath() );
     File pom = new File( svnProjectDir, "pom.xml");
 
