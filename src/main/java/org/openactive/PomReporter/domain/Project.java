@@ -5,11 +5,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
 
-/**
- * Created by jdavis on 1/24/17.
- */
 @Entity
-@Table(name = "project")
+@Table(name = "PROJECT")
 public class Project
 {
   @Id
@@ -18,17 +15,30 @@ public class Project
   private Integer id;
 
   @ManyToOne(fetch = FetchType.EAGER, optional = false)
-  private SvnCredential credentials;
+  private VCSCredential credentials;
+
+  /**
+   *  This is the url to the project *without* the username.
+   *  i.e. not https://user@git.foo.org/connect/connect.git
+   *
+   *  Example for git: https://git.foo.org/connect/connect.git
+   *  Example for svn: http://subversion.foo.org/svn/carlx/CarlX/
+   */
+  @Basic(optional = false)
+  private String url;
+
+  /**
+   * Used with git when tracking a branch besides master
+   */
+  @Basic
+  private String branch;
 
   @JsonIgnore
   @ManyToOne(fetch = FetchType.LAZY)
   private ProjectGroup projectGroup;
 
   @OneToOne(mappedBy = "project", cascade = CascadeType.REMOVE, orphanRemoval = true)
-  private ProjectSvnInfo svnInfo;
-
-  @Basic(optional = false)
-  private String path;
+  private ProjectInfo projectInfo;
 
   @Column(nullable = false)
   private String xpathExpression;
@@ -46,12 +56,12 @@ public class Project
     this.id = id;
   }
 
-  public SvnCredential getCredentials()
+  public VCSCredential getCredentials()
   {
     return credentials;
   }
 
-  public void setCredentials(SvnCredential credentials)
+  public void setCredentials(VCSCredential credentials)
   {
     this.credentials = credentials;
   }
@@ -64,16 +74,6 @@ public class Project
   public void setProjectGroup(ProjectGroup projectGroup)
   {
     this.projectGroup = projectGroup;
-  }
-
-  public String getPath()
-  {
-    return path;
-  }
-
-  public void setPath(String path)
-  {
-    this.path = path;
   }
 
   public String getXpathExpression()
@@ -96,14 +96,34 @@ public class Project
     this.name = name;
   }
 
-  public ProjectSvnInfo getSvnInfo()
+  public ProjectInfo getProjectInfo()
   {
-    return svnInfo;
+    return projectInfo;
   }
 
-  public void setSvnInfo(ProjectSvnInfo svnInfo)
+  public void setProjectInfo(ProjectInfo projectInfo )
   {
-    this.svnInfo = svnInfo;
+    this.projectInfo = projectInfo;
+  }
+
+  public String getUrl()
+  {
+    return url;
+  }
+
+  public void setUrl( String url )
+  {
+    this.url = url;
+  }
+
+  public String getBranch()
+  {
+    return branch;
+  }
+
+  public void setBranch( String branch )
+  {
+    this.branch = branch;
   }
 
   @Override

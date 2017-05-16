@@ -4,11 +4,9 @@ import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.openactive.PomReporter.dao.ProjectDAO;
 import org.openactive.PomReporter.dao.ProjectGroupDAO;
-import org.openactive.PomReporter.dao.SvnCredenitalDAO;
-import org.openactive.PomReporter.domain.Project;
-import org.openactive.PomReporter.domain.ProjectGroup;
-import org.openactive.PomReporter.domain.ProjectSvnInfo;
-import org.openactive.PomReporter.domain.SvnCredential;
+import org.openactive.PomReporter.dao.VCSCredenitalDAO;
+import org.openactive.PomReporter.domain.*;
+import org.openactive.PomReporter.domain.ProjectInfo;
 import org.openactive.PomReporter.exceptions.LockTimeoutException;
 import org.openactive.PomReporter.service.DeleteService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +30,7 @@ public class DeleteServiceImpl implements DeleteService
   private ProjectDAO projectDAO;
 
   @Autowired
-  private SvnCredenitalDAO svnCredenitalDAO;
+  private VCSCredenitalDAO svnCredenitalDAO;
 
   @Autowired
   private ProjectGroupDAO projectGroupDAO;
@@ -101,7 +99,7 @@ public class DeleteServiceImpl implements DeleteService
   }
 
   @Override
-  public void deleteCredentials(SvnCredential credential) throws Exception
+  public void deleteCredentials(VCSCredential credential) throws Exception
   {
     // cascading delete for projects only works if they are eagerly loaded
     credential = svnCredenitalDAO.findByIdAndFetchProjectsEagerly(credential.getId());
@@ -135,7 +133,7 @@ public class DeleteServiceImpl implements DeleteService
   private void deleteFiles(Project project) throws Exception
   {
     //delete project from file system
-    ProjectSvnInfo svnInfo = project.getSvnInfo();
+    ProjectInfo svnInfo = project.getProjectInfo();
     if( svnInfo == null )
     {
       // this project has no svnInfo. Most likely it was never
@@ -143,7 +141,7 @@ public class DeleteServiceImpl implements DeleteService
       LOG.info("Project has no svnInfo: " + project.getName());
       return;
     }
-    File svnProjectDir = new File(project.getSvnInfo().getFilePath());
+    File svnProjectDir = new File(project.getProjectInfo().getFilePath());
     File parent = svnProjectDir.getParentFile();
     File base = new File(baseFilePath);
 

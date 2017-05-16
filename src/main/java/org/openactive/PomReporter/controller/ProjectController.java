@@ -1,9 +1,7 @@
 package org.openactive.PomReporter.controller;
 
 import org.openactive.PomReporter.dao.ProjectDAO;
-import org.openactive.PomReporter.dao.SvnCredenitalDAO;
 import org.openactive.PomReporter.domain.Project;
-import org.openactive.PomReporter.domain.SvnCredential;
 import org.openactive.PomReporter.service.DeleteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -11,9 +9,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.persistence.EntityNotFoundException;
 import java.util.List;
 
-/**
- * Created by mohadib on 2/2/17.
- */
 @RestController
 @RequestMapping("/projects")
 public class ProjectController
@@ -46,7 +41,7 @@ public class ProjectController
   public Project patch(@RequestBody Project project )
   {
     Project orig = projectDAO.findOne(project.getId());
-    orig.setPath( project.getPath() );
+    orig.setUrl( project.getUrl() );
     orig.setName( project.getName());
     orig.setXpathExpression( project.getXpathExpression() );
     return projectDAO.save( orig );

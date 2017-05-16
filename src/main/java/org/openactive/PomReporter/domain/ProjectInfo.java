@@ -5,12 +5,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import javax.persistence.*;
 import java.util.Date;
 
-/**
- * Created by mohadib on 1/24/17.
- */
 @Entity
-@Table( name = "ProjectSvnInfo")
-public class ProjectSvnInfo
+@Table( name = "PROJECTINFO")
+public class ProjectInfo
 {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY )
@@ -34,7 +31,7 @@ public class ProjectSvnInfo
 
   // will be null right after first checkout
   @Basic(optional = true )
-  private long svnRevision;
+  private String revision;
 
   // will be null right after first checkout
   @Basic( optional = true )
@@ -76,14 +73,14 @@ public class ProjectSvnInfo
     this.project = project;
   }
 
-  public long getSvnRevision()
+  public String getRevision()
   {
-    return svnRevision;
+    return revision;
   }
 
-  public void setSvnRevision(long svnRevision)
+  public void setRevision( String revision )
   {
-    this.svnRevision = svnRevision;
+    this.revision = revision;
   }
 
   public String getFilePath()
@@ -140,9 +137,9 @@ public class ProjectSvnInfo
   public boolean equals(Object o)
   {
     if (this == o) return true;
-    if (!(o instanceof ProjectSvnInfo)) return false;
+    if (!(o instanceof ProjectInfo )) return false;
 
-    ProjectSvnInfo that = (ProjectSvnInfo) o;
+    ProjectInfo that = (ProjectInfo) o;
 
     return getFilePath().equals(that.getFilePath());
   }

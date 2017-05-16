@@ -6,12 +6,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import javax.persistence.*;
 import java.util.List;
 
-/**
- * Created by mohadib on 1/23/17.
- */
 @Entity
-@Table( name = "SvnCredential")
-public class SvnCredential
+@Table( name = "CREDENTIAL")
+public class VCSCredential
 {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY )
@@ -27,15 +24,6 @@ public class SvnCredential
 
   @Column(nullable = false)
   private String password;
-
-  @Basic(optional = false)
-  private String host;
-
-  @Basic(optional = false)
-  private String protocol;
-
-  @Basic(optional = false)
-  private int port;
 
   @Column(nullable = false, length = 100, unique = true)
   private String name;
@@ -92,45 +80,16 @@ public class SvnCredential
     this.name = name;
   }
 
-  public String getHost()
-  {
-    return host;
-  }
-
-  public void setHost( String host )
-  {
-    this.host = host;
-  }
-
-  public String getProtocol()
-  {
-    return protocol;
-  }
-
-  public void setProtocol( String protocol )
-  {
-    this.protocol = protocol;
-  }
-
-  public int getPort()
-  {
-    return port;
-  }
-
-  public void setPort( int port )
-  {
-    this.port = port;
-  }
 
   @Override
   public boolean equals( Object o )
   {
     if ( this == o )
       return true;
-    if ( !( o instanceof SvnCredential ) )
+    if ( !( o instanceof VCSCredential ) )
       return false;
 
-    SvnCredential that = (SvnCredential)o;
+    VCSCredential that = (VCSCredential)o;
 
     return getName().equals( that.getName() );
   }

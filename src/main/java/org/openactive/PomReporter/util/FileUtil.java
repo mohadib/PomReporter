@@ -2,15 +2,12 @@ package org.openactive.PomReporter.util;
 
 import org.apache.commons.lang3.StringUtils;
 import org.openactive.PomReporter.domain.Project;
-import org.openactive.PomReporter.domain.ProjectSvnInfo;
+import org.openactive.PomReporter.domain.ProjectInfo;
 
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-/**
- * Created by jdavis on 1/24/17.
- */
 public class FileUtil
 {
 	private File getOrCreateDir( String path )
@@ -34,8 +31,8 @@ public class FileUtil
 
 	public File getOrCreateSvnProjectDir( Project project, String baseFilePath, String allowedChars )
 	{
-		ProjectSvnInfo svnInfo = project.getSvnInfo();
-		File returnDir = null;
+		ProjectInfo svnInfo = project.getProjectInfo();
+		File returnDir;
 		File baseDir = getOrCreateDir( baseFilePath );
 
 		if( svnInfo != null )
@@ -44,15 +41,18 @@ public class FileUtil
 		}
 		else
 		{
-			String projectNameClean = project.getName().replaceAll( String.format("[^%s]", allowedChars), "" );
-			String projectPathClean = project.getPath().replaceAll( String.format("[^%s]", allowedChars), "" );
+			// http://svn.foo.com/svn/project/branches/mybranch
+			// https://git.foo.com/svn/project/project.git
+
+			String projectNameClean = project.getName().replaceAll( String.format("[^%s]+", allowedChars), "_" );
+			String projectPathClean = project.getUrl().replaceAll( String.format("[^%s]+", allowedChars), "_" );
 
 			if( StringUtils.isBlank( projectNameClean ) || StringUtils.isBlank( projectPathClean ))
 			{
 				throw new IllegalArgumentException( "Name or path blank after cleaning" );
 			}
 
-			returnDir = new File( new File( baseDir, projectNameClean), projectPathClean );
+			returnDir = new File( new File( baseDir, projectPathClean ), projectNameClean );
 		}
 
 		Path child = Paths.get( returnDir.getAbsolutePath() ).toAbsolutePath();
