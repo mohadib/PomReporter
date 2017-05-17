@@ -9,20 +9,22 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.Locale;
 
-/**
- * Created by jdavis on 5/16/17.
- */
 public class GitRevParser
 {
    private String hash;
    private String gitlabCommitUrl;
+   private String gitlabMRUrl;
    private String commitDate;
+   private String projectBaseUrl;
+   private String shortComment;
    private final String commitUrlTemplate = "<a target='_blank' href='%s/commit/%s'>commit</a>";
+   private final String mrUrlTemplate = "<a target='_blank' href='%s/merge_requests/%s'><img src='/gl16.png'></a>";
 
    public void parse( RevCommit commit , Project project )
    {
       hash = commit.getId().getName();
-      String projectBaseUrl = project.getUrl().substring(0, project.getUrl().lastIndexOf('.'));
+      shortComment = commit.getShortMessage();
+      projectBaseUrl = project.getUrl().substring(0, project.getUrl().lastIndexOf('.'));
       gitlabCommitUrl = String.format( commitUrlTemplate, projectBaseUrl, hash );
       Instant commitTime = Instant.ofEpochSecond( commit.getCommitTime() );
 
@@ -32,6 +34,27 @@ public class GitRevParser
           .withZone( ZoneId.systemDefault() );
 
       commitDate = formatter.format( commitTime );
+
+      parseMergeRequest( commit, project );
+   }
+
+   private void parseMergeRequest( RevCommit commit, Project project )
+   {
+      String msg = commit.getFullMessage();
+      if(msg.contains( "See merge request !" ) )
+      {
+         String mid = msg.substring(msg.lastIndexOf('!') + 1);
+         gitlabMRUrl = String.format( mrUrlTemplate, projectBaseUrl, mid );
+      }
+   }
+
+   public String getDisplayedMessage()
+   {
+      if( gitlabMRUrl != null  )
+      {
+         return shortComment + " " + gitlabMRUrl;
+      }
+      return shortComment;
    }
 
    public String getHash()
@@ -47,5 +70,10 @@ public class GitRevParser
    public String getCommitDate()
    {
       return commitDate;
+   }
+
+   public String getGitlabMRUrl()
+   {
+      return gitlabMRUrl;
    }
 }

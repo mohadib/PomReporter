@@ -9,7 +9,6 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 
 import java.io.File;
 import java.io.IOException;
-import java.time.Instant;
 
 public class GitLogHandler implements GitActionHandler
 {
@@ -37,7 +36,7 @@ public class GitLogHandler implements GitActionHandler
 						parser.getCommitDate(),
 						parser.getGitlabCommitUrl() ,
 						commit.getAuthorIdent().getName(),
-						commit.getShortMessage()
+						parser.getDisplayedMessage()
 					);
 
 					buff.append( logEntry );
