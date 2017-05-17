@@ -9,6 +9,7 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Instant;
 
 public class GitLogHandler implements GitActionHandler
 {
@@ -29,8 +30,16 @@ public class GitLogHandler implements GitActionHandler
 				Iterable< RevCommit > logs = git.log().setMaxCount( 20 ).call();
 				for ( RevCommit commit : logs )
 				{
-					String logEntry = String
-						.format( "%s | %s | %s<EOL>\n", commit.getCommitTime(), commit.getAuthorIdent().getName(), commit.getShortMessage() );
+					GitRevParser parser = new GitRevParser();
+					parser.parse( commit, context.project );
+					String logEntry = String.format(
+						"%s | %s | %s | %s<EOL>",
+						parser.getCommitDate(),
+						parser.getGitlabCommitUrl() ,
+						commit.getAuthorIdent().getName(),
+						commit.getShortMessage()
+					);
+
 					buff.append( logEntry );
 				}
 			}
