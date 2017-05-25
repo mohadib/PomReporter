@@ -37,7 +37,7 @@ public class ProjectInfo
   @Basic( optional = true )
   private String xpathResult;
 
-  @Column( length = 5000 )
+  @Column( columnDefinition="TEXT" )
   private String logEntries;
 
   @Basic
